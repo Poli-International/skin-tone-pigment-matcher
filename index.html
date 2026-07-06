@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow">
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'poli-theme') {
+          document.documentElement.setAttribute('data-theme', e.data.light ? 'light' : 'dark');
+        }
+      });
+    }
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="See how tattoo ink colours perform on each Fitzpatrick skin type — visibility, fade rate, and artist notes. Evidence-based pigment guide for all skin tones.">
+  <title>Skin Tone & Pigment Visibility Matcher | Poli International</title>
+  <link rel="stylesheet" href="/tools/skin-tone-pigment-matcher/css/style.css">
+</head>
+<body>
+<div class="tool-wrapper">
+
+  <header class="tool-header">
+    <div class="tool-header__badge">🎨 Pigment Science</div>
+    <h1>Skin Tone &amp; Pigment Visibility Matcher</h1>
+    <p>Select your Fitzpatrick skin type to see how each ink colour performs — initial visibility, long-term fade rate, and practical artist guidance.</p>
+  </header>
+
+  <div class="skin-selector">
+    <div class="skin-label">Select your Fitzpatrick skin type</div>
+    <div class="skin-grid" id="skin-grid">
+      <button class="skin-btn" data-type="I"   style="--swatch:#f5d5c0">
+        <span class="swatch"></span>
+        <span class="type-label">Type I</span>
+        <span class="type-desc">Very fair</span>
+      </button>
+      <button class="skin-btn" data-type="II"  style="--swatch:#e8c4a0">
+        <span class="swatch"></span>
+        <span class="type-label">Type II</span>
+        <span class="type-desc">Fair</span>
+      </button>
+      <button class="skin-btn" data-type="III" style="--swatch:#c8956a">
+        <span class="swatch"></span>
+        <span class="type-label">Type III</span>
+        <span class="type-desc">Medium</span>
+      </button>
+      <button class="skin-btn" data-type="IV"  style="--swatch:#a0704a">
+        <span class="swatch"></span>
+        <span class="type-label">Type IV</span>
+        <span class="type-desc">Olive</span>
+      </button>
+      <button class="skin-btn" data-type="V"   style="--swatch:#7a4d2e">
+        <span class="swatch"></span>
+        <span class="type-label">Type V</span>
+        <span class="type-desc">Brown</span>
+      </button>
+      <button class="skin-btn" data-type="VI"  style="--swatch:#3d1e0e">
+        <span class="swatch"></span>
+        <span class="type-label">Type VI</span>
+        <span class="type-desc">Deep</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="results-header">
+      <h2>Pigment Performance — Fitzpatrick Type <span id="type-name"></span></h2>
+      <p id="type-summary" class="type-summary-text"></p>
+    </div>
+    <div class="ink-grid" id="ink-grid"></div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Note:</strong> Ratings reflect typical pigment behaviour across skin types based on clinical and artist literature. Individual results vary with ink brand, needle depth, aftercare, UV exposure, and laser history. Consult your artist for colour recommendations specific to your skin and design goals.
+  </div>
+
+</div>
+<script src="/tools/skin-tone-pigment-matcher/js/app.js"></script>
+</body>
+</html>

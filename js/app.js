@@ -1,184 +1,277 @@
-const TYPES = {
-  I:   { name: 'Type I — Very Fair', summary: 'All pigments deliver strong initial contrast. The full colour palette is viable. Warm tones (red, orange) may shift or fade faster under UV exposure. White ink heals vibrantly on very fair skin but fades significantly within 2–5 years. Greatest long-term risk is UV fading rather than poor visibility.' },
-  II:  { name: 'Type II — Fair', summary: 'Similar to Type I — very broad colour palette works well. Yellow can appear washed-out as a standalone; neon shades are vivid. Excellent candidate for coloured and multi-pigment work. Black and dark blue offer the best long-term durability.' },
-  III: { name: 'Type III — Medium', summary: 'Most colours perform well. White ink contrast begins to soften; very pale pigments may need heavier saturation to achieve the same initial result. Black and dark blue retain excellent longevity. Some warm tones may shift slightly over time.' },
-  IV:  { name: 'Type IV — Olive / Light Brown', summary: 'Warm pigments (red, orange) risk appearing muted as skin melanin adds warmth to the overall tone. White ink fades to near-invisible after healing. Black and blue remain the strongest choices. Colour work is achievable but expect lower long-term saturation and discuss realistic outcomes with your artist.' },
-  V:   { name: 'Type V — Brown', summary: 'Light pigments (white, yellow, light pink) are largely ineffective on this skin type. Coloured work is restricted to high-contrast pigments. Black, dark blue, and deep green are the most reliable. Ensure your artist has demonstrable experience tattooing darker skin tones before committing to a complex design.' },
-  VI:  { name: 'Type VI — Deep / Dark Brown to Black', summary: 'Only the highest-contrast pigments retain long-term visibility. Black ink still works — the result is a variation in texture and sheen rather than colour contrast. Coloured work, especially warm tones, is not recommended. Artist experience tattooing deep skin tones is critical, as is careful discussion of realistic expectations.' },
-};
+/**
+ * Skin Tone & Pigment Visibility Matcher
+ * Pure client-side logic, 100% dictionary-driven i18n,
+ * qualitative contrast tiers (High/Medium/Low), narrative fade factors.
+ */
 
-const INK_COLORS = [
-  {
-    name: 'Black',
-    swatch: '#1a1a1a',
-    vis:   [5, 5, 5, 5, 4, 3],
-    aging: [2, 2, 2, 2, 2, 2],
-    notes: [
-      'Maximum contrast on very fair skin. Extremely durable — the gold standard for longevity.',
-      'Excellent contrast and longevity across all placement types.',
-      'Strong performer. Softens very slightly over decades but remains clearly defined.',
-      'Still very visible. Fades more slowly than any pigmented ink.',
-      'Readable, though lighter areas show it better. Fades to dark grey over years.',
-      'Visible primarily as textural contrast and a sheen change rather than colour contrast against dark skin.',
-    ],
-  },
-  {
-    name: 'Grey / Black & Grey',
-    swatch: '#888888',
-    vis:   [4, 4, 4, 3, 2, 1],
-    aging: [3, 3, 3, 3, 4, 4],
-    notes: [
-      'Good contrast; heals to silver-grey tones. Excellent for realism and portraiture.',
-      'Reliable medium for fine detail and portraiture work.',
-      'Slight warm shift over time. Mid-grey tones still clear; lighter washes soften.',
-      'Contrast reduces noticeably. Wash-out effect in lighter grey areas over time.',
-      'Mid-tones can disappear against warm skin undertones. Only darkest grey holds.',
-      'Poor to no visibility. Effectively invisible in lighter grey tones after healing.',
-    ],
-  },
-  {
-    name: 'White',
-    swatch: '#f0f0f0',
-    vis:   [4, 3, 2, 1, 1, 1],
-    aging: [5, 5, 5, 5, 4, 4],
-    notes: [
-      'Clean highlight effect immediately post-healing. Fades significantly within 2–5 years — plan for touch-ups.',
-      'Subtle highlight and accent use only. Near-invisible in most clients after 3–5 years.',
-      'Very short-lived contrast. Generally not recommended as a standalone element.',
-      'Near-invisible after healing. Avoid unless your artist advises a specific use case.',
-      'Ineffective. Heals undetectable on most brown skin tones.',
-      'Not recommended under any circumstances.',
-    ],
-  },
-  {
-    name: 'Red',
-    swatch: '#cc2200',
-    vis:   [5, 5, 4, 3, 2, 1],
-    aging: [3, 3, 3, 4, 5, 5],
-    notes: [
-      'Vivid and sharp. Red pigment is the most allergenic family — patch test strongly recommended.',
-      'Bold initial result. Patch test advised before any red ink session.',
-      'Good initial result; fades warmer over time. Patch test strongly advised.',
-      'Risk of orange-shift as skin warmth neutralises red. Vibrancy fades quickly.',
-      'Muted against warm brown undertones. Short-lived vibrancy at best.',
-      'Not recommended. Near-invisible after healing in most cases.',
-    ],
-  },
-  {
-    name: 'Orange',
-    swatch: '#e05c00',
-    vis:   [5, 4, 4, 3, 1, 1],
-    aging: [4, 4, 4, 5, 5, 5],
-    notes: [
-      'Vibrant on fair skin. Fades faster than black or blue — plan for touch-ups.',
-      'Good initial vibrancy; moderate longevity. Best used as an accent, not a fill.',
-      'Acceptable in multi-colour work. UV exposure accelerates fade noticeably.',
-      'Conflicts with warm skin undertones. Appears muted and fades rapidly.',
-      'Not recommended. Blends into skin tone within the first year.',
-      'Ineffective on deep skin tones.',
-    ],
-  },
-  {
-    name: 'Yellow',
-    swatch: '#c8a000',
-    vis:   [3, 3, 2, 1, 1, 1],
-    aging: [5, 5, 5, 5, 5, 5],
-    notes: [
-      'Highlight and accent use only — never a primary fill. Fades to near-invisible within a few years.',
-      'Only viable as a subtle accent in multi-colour work. No standalone longevity.',
-      'Very poor standalone viability. Only usable where another pigment provides the visual anchor.',
-      'Invisible after healing on most olive-toned skin. Not recommended.',
-      'Entirely ineffective.',
-      'Entirely ineffective.',
-    ],
-  },
-  {
-    name: 'Green',
-    swatch: '#1a7a2e',
-    vis:   [4, 4, 4, 3, 2, 2],
-    aging: [3, 3, 3, 3, 4, 4],
-    notes: [
-      'Forest and dark greens hold well. Lime and bright greens fade faster — use in accents.',
-      'Good performer. Darker formulations recommended for long-term work.',
-      'Reliable in darker shades. Bright greens soften noticeably after several years.',
-      'Some contrast reduction. Dark forest greens remain the most viable choice.',
-      'Only deep, dark greens show reliable contrast. Bright greens ineffective.',
-      'Deep forest green retains marginal visibility. All other greens effectively invisible.',
-    ],
-  },
-  {
-    name: 'Blue',
-    swatch: '#1a5fcc',
-    vis:   [5, 5, 5, 4, 3, 2],
-    aging: [2, 2, 2, 3, 3, 4],
-    notes: [
-      'Excellent across royal to navy tones. One of the most durable pigment families alongside black.',
-      'Highly reliable. Light blues fade somewhat faster than dark — navy lasts longest.',
-      'Strong performer. Dark navy remains a viable long-term choice across medium skin tones.',
-      'Good visibility retained. Navy and dark cobalt are the most durable options here.',
-      'Darker blues maintain reasonable contrast. Sky blue and light blue fade significantly.',
-      'Navy and dark cobalt retain some contrast. Lighter blues are ineffective.',
-    ],
-  },
-  {
-    name: 'Purple',
-    swatch: '#6633aa',
-    vis:   [4, 4, 3, 3, 2, 2],
-    aging: [3, 3, 3, 4, 4, 4],
-    notes: [
-      'Rich purples hold well. Lavender and lilac tones fade fastest — best as accents.',
-      'Good medium-term result. Deep purples recommended over lighter shades.',
-      'Acceptable overall. Cooler shades may shift slightly warmer over time.',
-      'Moderate fade rate. Deep purple retains contrast better than lilac or lavender.',
-      'Only deep violet delivers reliable contrast. Lighter shades fade to near-invisible.',
-      'Deep violet has marginal visibility. Lighter purples are effectively invisible.',
-    ],
-  },
-];
+(function () {
+  'use strict';
 
-const TYPE_ORDER = ['I','II','III','IV','V','VI'];
-const VIS_LABELS = ['', 'Poor', 'Weak', 'Moderate', 'Good', 'Excellent'];
+  const INK_CONFIG = [
+    {
+      id: 'black',
+      tiers: ['high', 'high', 'high', 'high', 'high', 'medium'],
+    },
+    {
+      id: 'grey',
+      tiers: ['high', 'high', 'medium', 'medium', 'low', 'low'],
+    },
+    {
+      id: 'white',
+      tiers: ['medium', 'medium', 'low', 'low', 'low', 'low'],
+    },
+    {
+      id: 'red',
+      tiers: ['high', 'high', 'medium', 'medium', 'low', 'low'],
+      hasAllergyNote: true,
+    },
+    {
+      id: 'orange',
+      tiers: ['high', 'medium', 'medium', 'low', 'low', 'low'],
+    },
+    {
+      id: 'yellow',
+      tiers: ['medium', 'low', 'low', 'low', 'low', 'low'],
+    },
+    {
+      id: 'green',
+      tiers: ['high', 'high', 'medium', 'medium', 'low', 'low'],
+    },
+    {
+      id: 'blue',
+      tiers: ['high', 'high', 'high', 'medium', 'medium', 'low'],
+    },
+    {
+      id: 'purple',
+      tiers: ['high', 'high', 'medium', 'medium', 'low', 'low'],
+    },
+  ];
 
-function barHtml(value, max, cls) {
-  const pct = Math.round((value / max) * 100);
-  return `<div class="bar-wrap"><div class="bar ${cls}" style="width:${pct}%"></div></div><span class="bar-num">${value}/${max}</span>`;
-}
+  const TYPE_KEYS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+  let selectedType = null;
 
-function render(typeKey) {
-  const type = TYPES[typeKey];
-  const idx = TYPE_ORDER.indexOf(typeKey);
+  function t(key, params) {
+    return window.i18n ? window.i18n.t(key, params) : key;
+  }
 
-  document.getElementById('type-name').textContent = typeKey;
-  document.getElementById('type-summary').textContent = type.summary;
+  function getTierCount(tier) {
+    if (tier === 'high') return 3;
+    if (tier === 'medium') return 2;
+    return 1;
+  }
 
-  document.getElementById('ink-grid').innerHTML = INK_COLORS.map(ink => `
-    <div class="ink-card">
-      <div class="ink-header">
-        <span class="ink-swatch" style="background:${ink.swatch}"></span>
-        <span class="ink-name">${ink.name}</span>
-        <span class="ink-vis-badge vis-${ink.vis[idx]}">${VIS_LABELS[ink.vis[idx]]}</span>
+  function renderTierGauge(tier) {
+    const count = getTierCount(tier);
+    const tierText = t('contrast.' + tier);
+    const accessibleDesc = tierText + ', ' + t('contrast.segment_count', { tier: count });
+
+    let segmentsHtml = '';
+    for (let i = 1; i <= 3; i++) {
+      const activeCls = i <= count ? 'is-active is-' + tier : 'is-inactive';
+      segmentsHtml += `<span class="tier-pip ${activeCls}"></span>`;
+    }
+
+    return `
+      <div class="tier-indicator" role="img" aria-label="${accessibleDesc}">
+        <div class="tier-pips" aria-hidden="true">${segmentsHtml}</div>
+        <span class="tier-label is-${tier}">${tierText}</span>
       </div>
-      <div class="ink-metrics">
-        <div class="metric-row">
-          <span class="metric-lbl">Visibility</span>
-          ${barHtml(ink.vis[idx], 5, 'bar-vis')}
-        </div>
-        <div class="metric-row">
-          <span class="metric-lbl">Fade rate</span>
-          ${barHtml(ink.aging[idx], 5, 'bar-fade')}
-        </div>
-      </div>
-      <p class="ink-note">${ink.notes[idx]}</p>
-    </div>`).join('');
+    `;
+  }
 
-  document.getElementById('results').style.display = '';
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  function renderResults(typeKey) {
+    if (!typeKey) return;
+    const typeIdx = TYPE_KEYS.indexOf(typeKey);
+    if (typeIdx === -1) return;
 
-document.getElementById('skin-grid').addEventListener('click', e => {
-  const btn = e.target.closest('.skin-btn');
-  if (!btn) return;
-  document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  render(btn.dataset.type);
-});
+    selectedType = typeKey;
+
+    const resultsEl = document.getElementById('results');
+    const headingEl = document.getElementById('results-heading');
+    const summaryEl = document.getElementById('type-summary');
+    const inkGridEl = document.getElementById('ink-grid');
+
+    if (!resultsEl || !headingEl || !summaryEl || !inkGridEl) return;
+
+    headingEl.textContent = t('results.heading', { type: typeKey });
+    summaryEl.textContent = t('skin.type' + typeKey + '_summary');
+
+    let cardsHtml = '';
+
+    for (let i = 0; i < INK_CONFIG.length; i++) {
+      const ink = INK_CONFIG[i];
+      const tier = ink.tiers[typeIdx];
+      const name = t('color.' + ink.id + '.name');
+      const fadeFactor = t('color.' + ink.id + '.fade_factor');
+      const note = t('color.' + ink.id + '.note_' + typeKey);
+
+      let allergyHtml = '';
+      if (ink.hasAllergyNote) {
+        allergyHtml = `
+          <div class="ink-card__allergy">
+            <span class="allergy-icon" aria-hidden="true">ℹ</span>
+            <span>${t('labels.allergy_note')} <a href="https://poliinternational.com/allergy-patch-test/" target="_top" class="inline-tool-link">${t('related.allergy_title')}</a></span>
+          </div>
+        `;
+      }
+
+      cardsHtml += `
+        <article class="ink-card" id="ink-card-${ink.id}">
+          <header class="ink-card__header">
+            <div class="ink-card__title-group">
+              <span class="ink-swatch swatch-${ink.id}" aria-hidden="true"></span>
+              <h3 class="ink-card__name">${name}</h3>
+            </div>
+            ${renderTierGauge(tier)}
+          </header>
+
+          <div class="ink-card__body">
+            <div class="ink-card__section">
+              <span class="ink-card__meta-label">${t('labels.fade_factor')}</span>
+              <p class="ink-card__fade-text">${fadeFactor}</p>
+            </div>
+
+            <div class="ink-card__section">
+              <span class="ink-card__meta-label">${t('labels.artist_guidance')}</span>
+              <p class="ink-card__note-text">${note}</p>
+            </div>
+
+            ${allergyHtml}
+          </div>
+        </article>
+      `;
+    }
+
+    inkGridEl.innerHTML = cardsHtml;
+    resultsEl.removeAttribute('hidden');
+  }
+
+  function applyTranslations() {
+    // 1. Static text elements
+    const i18nElements = document.querySelectorAll('[data-i18n]');
+    i18nElements.forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key) {
+        el.textContent = t(key);
+      }
+    });
+
+    // 2. Attributes (aria-label, title)
+    const i18nAttrElements = document.querySelectorAll('[data-i18n-attr]');
+    i18nAttrElements.forEach(el => {
+      const raw = el.getAttribute('data-i18n-attr');
+      if (!raw) return;
+      // Format: "aria-label:key,title:key"
+      const pairs = raw.split(',');
+      pairs.forEach(pair => {
+        const [attr, key] = pair.split(':');
+        if (attr && key) {
+          el.setAttribute(attr.trim(), t(key.trim()));
+        }
+      });
+    });
+
+    // 3. Document meta title and description
+    document.title = t('meta.title');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', t('meta.description'));
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', t('meta.title'));
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', t('meta.description'));
+
+    // 4. If a skin type is selected, re-render cards with fresh translations
+    if (selectedType) {
+      renderResults(selectedType);
+    }
+  }
+
+  function initLanguageSelector() {
+    const selectEl = document.getElementById('lang-select');
+    if (!selectEl) return;
+
+    selectEl.value = window.i18n ? window.i18n.currentLang : 'en';
+
+    selectEl.addEventListener('change', function () {
+      if (window.i18n) {
+        window.i18n.setLanguage(selectEl.value);
+        applyTranslations();
+      }
+    });
+  }
+
+  function initSkinSelector() {
+    const container = document.getElementById('skin-grid');
+    if (!container) return;
+
+    container.addEventListener('click', function (e) {
+      const btn = e.target.closest('.skin-btn');
+      if (!btn) return;
+
+      const allBtns = container.querySelectorAll('.skin-btn');
+      allBtns.forEach(b => {
+        b.classList.remove('is-active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
+
+      const typeKey = btn.dataset.type;
+      renderResults(typeKey);
+
+      const resultsEl = document.getElementById('results');
+      if (resultsEl) {
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  function initEmbedSnippet() {
+    const copyBtn = document.getElementById('copy-embed-btn');
+    const inputEl = document.getElementById('embed-code-snippet');
+    if (!copyBtn || !inputEl) return;
+
+    copyBtn.addEventListener('click', function () {
+      const code = inputEl.value;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          showCopiedState(copyBtn);
+        }).catch(() => {
+          fallbackCopy(inputEl, copyBtn);
+        });
+      } else {
+        fallbackCopy(inputEl, copyBtn);
+      }
+    });
+  }
+
+  function fallbackCopy(inputEl, btn) {
+    inputEl.focus();
+    inputEl.select();
+    try {
+      document.execCommand('copy');
+      showCopiedState(btn);
+    } catch (err) {
+      /* ignore */
+    }
+  }
+
+  function showCopiedState(btn) {
+    const originalText = t('embed.copy_button');
+    btn.textContent = t('embed.copied_button');
+    btn.classList.add('is-copied');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('is-copied');
+    }, 2000);
+  }
+
+  // Document bootstrap
+  document.addEventListener('DOMContentLoaded', function () {
+    initLanguageSelector();
+    initSkinSelector();
+    initEmbedSnippet();
+    applyTranslations();
+  });
+})();

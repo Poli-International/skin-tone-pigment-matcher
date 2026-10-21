@@ -109,7 +109,7 @@
       if (ink.hasAllergyNote) {
         allergyHtml = `
           <div class="ink-card__allergy">
-            <span class="allergy-icon" aria-hidden="true">ℹ</span>
+            <span class="allergy-icon" aria-hidden="true"><svg class=ti-i width=1.15em height=1.15em aria-hidden=true style=vertical-align:-.18em;flex:none><use href=../shared/icons.svg#i-info></use></svg></span>
             <span>${t('labels.allergy_note')} <a href="https://poliinternational.com/allergy-patch-test/" target="_top" class="inline-tool-link">${t('related.allergy_title')}</a></span>
           </div>
         `;
